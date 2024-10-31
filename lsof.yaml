@@ -1,0 +1,19 @@
+schemaVersion: '0.3'
+description: 'Capture lsof output for Java libraries on Linux instances'
+mainSteps:
+  - action: 'aws:runCommand'
+    name: 'captureLsofLinux'
+    inputs:
+      DocumentName: 'AWS-RunShellScript'
+      Parameters:
+        commands:
+          - |
+            #!/bin/bash
+            # Get all Java processes and their open files
+            java_pids=$(pgrep -f java)
+            for pid in $java_pids; do
+              echo "Collecting lsof data for Java process with PID: $pid"
+              lsof -p $pid | grep '\.jar\|\.so\|\.class'
+            done
+        workingDirectory: ""
+        executionTimeout: "3600"
