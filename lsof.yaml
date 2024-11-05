@@ -5,6 +5,35 @@ mainSteps:
     name: "runPowerShellScript"
     inputs:
       runCommand:
+        - "Write-Output 'Starting custom script...'"
+        - |
+          Write-Output "List Installed Java versions"
+          Get-ChildItem -Path 'C:\Program Files\Java' | Select-Object Name
+          Write-Output "--------------------------------------"
+          Write-Output "Current Java Version"
+          java -version 2>&1 | ForEach-Object { Write-Output $_ }
+          Write-Output "--------------------------------------"
+          Write-Output "Java Process"
+          Get-Process | Where-Object { $_.ProcessName -like '*java*' } | ForEach-Object { $_.Path }
+          Write-Output "--------------------------------------"
+          Write-Output "Get all java process and their open files"
+          $javaPIDs = Get-Process | Where-Object { $_.ProcessName -like '*java*' } | Select-Object -ExpandProperty Id
+          foreach ($pid in $javaPIDs) {
+            Write-Output "Collecting open files for java process with PID: $pid"
+            handle64.exe -p $pid | Select-String '\.jar|\.dll' | ForEach-Object { $_.Line }
+          }
+        - "Write-Output 'Custom script execution completed.'"
+
+
+
+---
+schemaVersion: "2.2"
+description: "Run a custom PowerShell script on a Windows instance"
+mainSteps:
+  - action: "aws:runPowerShellScript"
+    name: "runPowerShellScript"
+    inputs:
+      runCommand:
         - "Write-Host 'Starting custom script...'"
         - |
           # Your custom PowerShell script goes here
