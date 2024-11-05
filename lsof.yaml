@@ -1,23 +1,21 @@
-schemaVersion: "2.2"
-description: "Run a custom PowerShell script on a Windows instance"
+schemaVersion: '0.3'
+description: 'Capture open file handles for Java libraries on Windows instances'
 mainSteps:
-  - action: "aws:runPowerShellScript"
-    name: "runPowerShellScript"
+  - action: 'aws:runCommand'
+    name: 'captureOpenFilesWindows'
     inputs:
-      runCommand:
-        - "Write-Host 'Starting custom script...'"
-        - |
-          # Your custom PowerShell script goes here
-          # Example commands:
-          Write-Host 'Hello, World!'
-          # Place your actual script here
-          # For instance, installing packages
-          Install-WindowsFeature -Name Web-Server
-          # Starting a service
-          Start-Service -Name W3SVC
-          Set-Service -Name W3SVC -StartupType Automatic
-        - "Write-Host 'Custom script execution completed.'"
-
+      DocumentName: 'AWS-RunPowerShellScript'
+      Parameters:
+        commands:
+          - |
+            # Get all Java processes and their open file handles
+            $javaProcesses = Get-Process | Where-Object { $_.Path -match "java" }
+            foreach ($process in $javaProcesses) {
+              Write-Output "Collecting open file data for Java process with PID: $($process.Id)"
+              Get-ProcessOpenFile -ProcessId $process.Id | Where-Object { $_ -match '\.jar|\.dll|\.class' }
+            }
+        workingDirectory: ""
+        executionTimeout: "3600"
 
 ---
 schemaVersion: '0.3'
