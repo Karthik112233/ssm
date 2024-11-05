@@ -1,4 +1,25 @@
 schemaVersion: '0.3'
+description: 'Capture open file output for Java libraries on Windows instances'
+mainSteps:
+  - action: 'aws:runCommand'
+    name: 'captureLsofWindows'
+    inputs:
+      DocumentName: 'AWS-RunPowerShellScript'
+      Parameters:
+        commands:
+          - |
+            # Get all Java processes and their open files
+            $javaProcesses = Get-Process java -ErrorAction SilentlyContinue
+            foreach ($process in $javaProcesses) {
+              Write-Host "Collecting open handle data for Java process with PID: $($process.Id)"
+              Get-ProcessHandle -Id $process.Id | Where-Object { $_.Name -match '\.jar|\.dll|\.class' }
+            }
+        workingDirectory: ""
+        executionTimeout: "3600"
+
+
+---
+schemaVersion: '0.3'
 description: 'Capture lsof output for Java libraries on Linux instances'
 mainSteps:
   - action: 'aws:runCommand'
