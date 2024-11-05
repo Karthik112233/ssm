@@ -52,14 +52,21 @@ mainSteps:
         - "#!/bin/bash"
         - "echo 'Starting custom script...'"
         - |
-          # Your custom shell script goes here
-          # Example commands:
-          echo 'Hello, World!'
-          # Place your actual script here
-          # For instance, installing packages
-          sudo yum update -y
-          sudo yum install -y httpd
-          # Starting a service
-          sudo systemctl start httpd
-          sudo systemctl enable httpd
+          #!/bin/bash
+          echo "List Installed Java versions"
+          cd /usr/java && ls -ltr | awk '{print $9}'
+          echo "--------------------------------------"
+          echo "Current Java Version"
+          java -version 2>&1
+          echo "--------------------------------------"
+          echo "Java Process"
+          ps -ef | grep java | awk '{for(i=8;i<=NF;i++) printf $i" "; print ""}'
+          echo "--------------------------------------"
+          echo "Get all java process and their open files"
+          java_pids=$(pgrep -f java)
+          echo $java_pids
+          for pid in $java_pids; do
+            echo "collection lsof data for java process with PID: $pid"
+            lsof -p $pid | grep '\.jar\|\.so' | awk '{print $9}' | sort -u
+          done
         - "echo 'Custom script execution completed.'"
