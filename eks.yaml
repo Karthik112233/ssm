@@ -1,0 +1,18 @@
+description: "SSM document to check Java version in EKS pods across multiple clusters"
+schemaVersion: "2.2"
+parameters:
+  ClusterName:
+    type: "String"
+    description: "Name of the EKS cluster to target"
+mainSteps:
+  - action: "aws:runShellScript"
+    name: "checkJavaInPods"
+    inputs:
+      runCommand:
+        - "#!/bin/bash"
+        - "aws eks update-kubeconfig --region <region> --name {{ ClusterName }}"
+        - "for pod in $(kubectl get pods --all-namespaces -o jsonpath='{.items[*].metadata.name}'); do"
+        - "  namespace=$(kubectl get pod $pod --all-namespaces -o jsonpath='{.metadata.namespace}')"
+        - "  echo \"Checking Java version in pod $pod in namespace $namespace:\""
+        - "  kubectl exec -n $namespace $pod -- java -version || echo \"Java not found\""
+        - "done"
