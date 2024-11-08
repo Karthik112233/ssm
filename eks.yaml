@@ -1,3 +1,28 @@
+{
+  "schemaVersion": "2.2",
+  "description": "Check for Java processes in each pod across all namespaces",
+  "mainSteps": [
+    {
+      "action": "aws:runShellScript",
+      "name": "findJavaInPods",
+      "inputs": {
+        "runCommand": [
+          "#!/bin/bash",
+          "for namespace in $(kubectl get ns --no-headers -o custom-columns=\":metadata.name\"); do",
+          "  echo \"Checking namespace: $namespace\"",
+          "  for pod in $(kubectl get pods -n $namespace --no-headers -o custom-columns=\":metadata.name\"); do",
+          "    echo \"Checking pod: $pod in namespace: $namespace\"",
+          "    kubectl exec -n $namespace $pod -- sh -c 'if ps -ef | grep -q java; then echo \"Java found in $pod\"; else echo \"Java not found in $pod\"; fi' || echo \"Could not check pod: $pod\"",
+          "  done",
+          "done"
+        ]
+      }
+    }
+  ]
+}
+
+
+---
 description: "SSM document to check Java version in EKS pods across multiple clusters"
 schemaVersion: "2.2"
 parameters:
